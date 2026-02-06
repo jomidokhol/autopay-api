@@ -6,6 +6,9 @@
     <meta name="google" content="notranslate"> <!-- Prevent Auto Translation -->
     <title>Auto Pay API - Token Generator</title>
     
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -24,22 +27,32 @@
             --gray-color: #64748b;
             --border-color: #e2e8f0;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif; /* New Font Style */
+            -webkit-tap-highlight-color: transparent; /* Remove Blue Tap Highlight */
         }
         
+        /* Disable Selection Globally */
         body {
             background-color: #f1f5f9;
             color: var(--dark-color);
             line-height: 1.6;
-            padding-top: 20px; /* Space for content below sticky header if needed */
+            padding-top: 20px;
             min-height: 100vh;
+            user-select: none; /* Prevent text selection */
+            -webkit-user-select: none;
+        }
+
+        /* Allow selection only on inputs and specific token areas */
+        input, select, .token-display-box, .token-cell, .token-preview {
+            user-select: text;
+            -webkit-user-select: text;
         }
 
         /* Loading Screen Styles */
@@ -61,22 +74,21 @@
         .intro-img {
             width: 150px;
             margin-bottom: 20px;
-            animation: pulse 2s infinite;
+            animation: bounceIn 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite alternate;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
         }
         
         .spinner {
             width: 50px;
             height: 50px;
-            border: 5px solid var(--light-color);
-            border-top: 5px solid var(--primary-color);
+            border: 4px solid var(--light-color);
+            border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-bottom: 15px;
         }
         
@@ -104,16 +116,17 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: #f1f5f9; /* Match body bg or use white */
+            background-color: rgba(241, 245, 249, 0.95); /* Slight transparency */
+            backdrop-filter: blur(10px);
             z-index: 1000;
             padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 4px 10px -5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 90px; /* Reduced height */
-            animation: slideDown 0.5s ease-out;
+            height: 85px;
+            animation: slideDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             margin-bottom: 30px;
         }
 
@@ -122,7 +135,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Center Logo Container */
         .header-center {
             position: absolute;
             left: 50%;
@@ -134,21 +146,21 @@
         }
 
         .header-logo-img {
-            height: 45px; /* Adjusted size */
+            height: 42px;
             width: auto;
             object-fit: contain;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
         
         .header-title {
-            font-size: 1rem; /* Smaller font */
+            font-size: 0.9rem;
             color: var(--dark-color);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
-        /* Right Side Auth */
         .header-right {
             margin-left: auto;
             margin-right: 20px;
@@ -160,12 +172,17 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            display: none; /* Hidden by default */
+            display: none;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
         }
 
         .user-avatar {
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 2px solid var(--primary-color);
             object-fit: cover;
@@ -174,60 +191,71 @@
         .btn-login-header {
             background-color: var(--primary-color);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 8px 20px;
+            border-radius: 30px;
             font-size: 14px;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            display: none; /* Hidden until checks done */
+            display: none;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            transition: transform 0.2s;
         }
+
+        .btn-login-header:active { transform: scale(0.95); }
         
         .btn-logout {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 6px 14px;
+            font-size: 11px;
             background-color: var(--danger-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 20px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .btn-logout:hover {
+            background-color: #c53030;
+            transform: translateY(-1px);
         }
 
         /* === MAIN CONTENT === */
-        
         .card {
             background-color: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
             padding: 30px;
             margin-bottom: 30px;
             margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.3s ease;
         }
         
         .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.4rem;
+            margin-bottom: 25px;
             color: var(--dark-color);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 600;
         }
         
-        .card-title i {
-            color: var(--primary-color);
-        }
+        .card-title i { color: var(--primary-color); }
         
         .token-generator {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
         }
         
         .input-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
         }
         
         .input-field {
@@ -237,73 +265,78 @@
         
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 10px;
+            font-weight: 500;
             color: var(--dark-color);
+            font-size: 0.95rem;
         }
         
         input, select {
             width: 100%;
-            padding: 12px 15px;
+            padding: 14px 18px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             transition: all 0.3s;
+            background-color: #f8fafc;
         }
         
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
         }
 
         .checkbox-wrapper {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             margin-top: 10px;
             cursor: pointer;
         }
         
         .checkbox-wrapper input {
-            width: auto;
-            margin: 0;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
-        }
-        
-        .checkbox-wrapper span {
-            font-size: 0.95rem;
-            color: var(--dark-color);
         }
         
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             text-decoration: none;
+            letter-spacing: 0.5px;
         }
         
+        .btn:active { transform: scale(0.97); }
+        
         .btn-primary {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
         
         .btn-primary:hover {
-            background-color: var(--primary-dark);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
         }
         
         .btn-primary:disabled {
-            background-color: var(--gray-color);
+            background: var(--gray-color);
             cursor: not-allowed;
             opacity: 0.7;
+            box-shadow: none;
+            transform: none;
         }
 
         .btn-loading {
@@ -312,15 +345,13 @@
             opacity: 0.8;
         }
 
-        .btn-loading .btn-text {
-            visibility: hidden;
-        }
+        .btn-loading .btn-text { visibility: hidden; }
 
         .btn-loading::after {
             content: "";
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border: 3px solid transparent;
             border-top-color: #ffffff;
             border-radius: 50%;
@@ -333,9 +364,10 @@
         }
         
         .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
+            background-color: #fee2e2;
+            color: var(--danger-color);
         }
+        .btn-danger:hover { background-color: #fecaca; }
         
         .btn-outline {
             background-color: transparent;
@@ -344,7 +376,7 @@
         }
         
         .btn-outline:hover {
-            background-color: #f8fafc;
+            background-color: white;
             color: var(--primary-color);
             border-color: var(--primary-color);
         }
@@ -355,30 +387,30 @@
             margin-top: 10px;
         }
         
-        .tokens-list {
-            margin-top: 40px;
-        }
+        .tokens-list { margin-top: 50px; }
         
         .tokens-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .token-count {
             background-color: var(--primary-color);
             color: white;
-            padding: 5px 12px;
+            padding: 6px 15px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
         }
         
         .table-container {
             overflow-x: auto;
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
         }
         
         table {
@@ -387,105 +419,126 @@
             background-color: white;
         }
         
-        thead {
-            background-color: var(--light-color);
-        }
+        thead { background-color: #f8fafc; }
         
         th {
-            padding: 18px 15px;
+            padding: 20px 18px;
             text-align: left;
             font-weight: 600;
             color: var(--dark-color);
             border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         td {
-            padding: 18px 15px;
+            padding: 20px 18px;
             border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
         }
         
-        tr:last-child td {
-            border-bottom: none;
-        }
+        tr:last-child td { border-bottom: none; }
+        
+        tr:hover { background-color: #fcfcfc; }
         
         .status {
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
             display: inline-block;
+            text-transform: uppercase;
         }
         
         .status.active {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--primary-color);
+            background-color: #d1fae5;
+            color: #059669;
         }
         
         .status.expired {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
+            background-color: #fee2e2;
+            color: #b91c1c;
         }
         
         .token-cell {
             font-family: 'Courier New', monospace;
             font-size: 14px;
             color: #475569;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         
         .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
             border: none;
-            font-size: 16px;
+            font-size: 15px;
         }
         
         .copy-btn {
-            background-color: rgba(16, 185, 129, 0.1);
+            background-color: #f0fdf4;
             color: var(--primary-color);
         }
+        .copy-btn:hover { background-color: var(--primary-color); color: white; }
         
         .delete-btn {
-            background-color: rgba(239, 68, 68, 0.1);
+            background-color: #fef2f2;
             color: var(--danger-color);
         }
+        .delete-btn:hover { background-color: var(--danger-color); color: white; }
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: var(--gray-color);
         }
         
         .empty-state i {
-            font-size: 60px;
+            font-size: 70px;
             margin-bottom: 20px;
-            color: #cbd5e1;
+            color: #e2e8f0;
         }
         
         footer {
             text-align: center;
-            padding: 30px 0;
-            margin-top: 40px;
+            padding: 40px 0;
+            margin-top: 50px;
             color: var(--gray-color);
             font-size: 14px;
             border-top: 1px solid var(--border-color);
+        }
+        
+        /* Updated Footer Link Style */
+        footer p a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+        
+        footer p a:hover {
+            color: var(--dark-color);
+            text-decoration: underline;
         }
 
         .footer-buttons {
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
         
@@ -493,95 +546,126 @@
             position: fixed;
             top: 100px;
             right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
+            padding: 16px 24px;
+            border-radius: 12px;
             color: white;
             font-weight: 600;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             z-index: 1100;
             transform: translateX(150%);
-            transition: transform 0.3s ease-out;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .notification.show {
-            transform: translateX(0);
-        }
-        
+        .notification.show { transform: translateX(0); }
         .notification.success { background-color: var(--primary-color); }
         .notification.error { background-color: var(--danger-color); }
         .notification.info { background-color: var(--secondary-color); }
 
-        /* === MODAL STYLES === */
+        /* === IMPROVED MODAL STYLES === */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(30, 41, 59, 0.6); /* Darker blur */
             z-index: 2000;
             display: none;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(3px);
-            animation: fadeIn 0.3s;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.4s ease;
         }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-box {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             width: 90%;
-            max-width: 450px;
-            border-radius: 12px;
-            padding: 30px;
+            max-width: 420px;
+            border-radius: 20px;
+            padding: 40px 30px;
             text-align: center;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: scale(0.9);
-            animation: popUp 0.3s forwards;
+            animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             position: relative;
+            border: 1px solid rgba(255,255,255,0.6);
         }
 
         @keyframes popUp {
-            to { transform: scale(1); }
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        .modal-icon {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 15px;
+        /* Modal Logo Image Style */
+        .modal-logo-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
         }
 
         .modal-title {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin-bottom: 10px;
             color: var(--dark-color);
+            font-weight: 700;
         }
 
         .modal-desc {
             color: var(--gray-color);
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
         
         .token-display-box {
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 6px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
             font-family: 'Courier New', monospace;
             word-break: break-all;
-            margin-bottom: 20px;
-            border: 1px dashed var(--primary-color);
+            margin-bottom: 25px;
+            border: 2px dashed var(--primary-color);
             color: var(--dark-color);
+            font-weight: 600;
+            font-size: 1.1rem;
         }
         
         .close-modal-btn {
             position: absolute;
             top: 15px;
             right: 15px;
-            background: none;
+            background: #f1f5f9;
             border: none;
-            font-size: 1.2rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--gray-color);
             cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close-modal-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
         }
 
         @media (max-width: 768px) {
-            header { height: 110px; }
+            header { height: 100px; }
             .input-group { flex-direction: column; }
             .actions { flex-direction: column; }
             .btn { width: 100%; }
@@ -596,13 +680,14 @@
         <div class="loading-text">Auto Pay API</div>
     </div>
 
-    <!-- Login Prompt Modal -->
+    <!-- Login Prompt Modal (Updated with Logo) -->
     <div class="modal-overlay" id="login-modal">
         <div class="modal-box">
-            <div class="modal-icon"><i class="fab fa-google"></i></div>
+            <!-- Replaced Google Icon with Site Logo -->
+            <img src="https://i.ibb.co.com/XxJH5cwv/IMG-20260206-173807.png" alt="Logo" class="modal-logo-img">
             <h2 class="modal-title">Welcome!</h2>
-            <p class="modal-desc">Please log in with your Google account to access the API Token Generator.</p>
-            <button class="btn btn-primary" id="modal-login-btn">
+            <p class="modal-desc">Please log in to continue and manage your API tokens securely.</p>
+            <button class="btn btn-primary" id="modal-login-btn" style="width: 100%;">
                 <i class="fab fa-google"></i> Login with Google
             </button>
         </div>
@@ -612,7 +697,7 @@
     <div class="modal-overlay" id="result-modal">
         <div class="modal-box">
             <button class="close-modal-btn" id="close-result-modal"><i class="fas fa-times"></i></button>
-            <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <img src="https://i.ibb.co.com/XxJH5cwv/IMG-20260206-173807.png" alt="Success" class="modal-logo-img" style="width: 60px; height: 60px;">
             <h2 class="modal-title">Token Generated!</h2>
             <p class="modal-desc">Copy this token now. It won't be visible again.</p>
             
@@ -630,7 +715,7 @@
     <header>
         <div class="container" style="display: flex; justify-content: space-between; align-items: center; position: relative; width: 100%;">
             
-            <!-- Left Side Spacer (for balance) -->
+            <!-- Left Side Spacer -->
             <div style="flex: 1;"></div>
 
             <!-- Center Logo -->
@@ -641,13 +726,13 @@
             
             <!-- Right Side Auth -->
             <div class="header-right" style="flex: 1; display: flex; justify-content: flex-end;">
-                <!-- Manual Login Button (Visible when logged out) -->
+                <!-- Manual Login Button -->
                 <button id="header-login-btn" class="btn-login-header">Login</button>
 
-                <!-- Profile (Visible when logged in) -->
+                <!-- Profile -->
                 <div id="auth-profile" class="auth-profile">
                     <img id="user-avatar" src="" alt="User" class="user-avatar">
-                    <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -732,16 +817,20 @@
                     <i class="fab fa-android"></i> API activate app
                 </a>
             </div>
-            <p>Auto Pay API Token Generator <b>&copy; 2026</b> | Created by <strong>Developer Nur</strong></p>
+            <!-- Updated Footer Link -->
+            <p>Auto Pay API Token Generator <b>&copy; 2026</b> | Created by <a href="https://www.facebook.com/NURtheBackBencher" target="_blank">Developer Nur</a></p>
         </footer>
     </div>
     
     <div class="notification" id="notification"></div>
 
     <script>
-        
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        // IMPORTANT: You MUST replace these with your actual Firebase project config 
         const firebaseConfig = {
-        apiKey: "AIzaSyCFNNXY4oRMg8AjhWa9PqCN8gdILmwdRk0",
+            apiKey: "AIzaSyCFNNXY4oRMg8AjhWa9PqCN8gdILmwdRk0",
   authDomain: "autopay-api.firebaseapp.com",
   projectId: "autopay-api",
   storageBucket: "autopay-api.firebasestorage.app",
@@ -824,7 +913,9 @@
             }, 1500);
         });
 
-        // Authentication Logic
+        // 1. AUTOMATIC REFRESH / REAL-TIME CHECK
+        // This function monitors the auth state constantly. 
+        // If state changes (logout elsewhere), UI updates immediately.
         function checkAuthAndInit() {
             if (!auth) {
                 showNotification("Configure Firebase to enable login", "error");
@@ -839,9 +930,8 @@
                     
                     authProfile.style.display = 'flex'; 
                     headerLoginBtn.style.display = 'none';
-                    loginModal.style.display = 'none'; // Close login modal if open
+                    loginModal.style.display = 'none'; 
                     
-                    // Enable Generator
                     generateBtn.disabled = false;
                     genBtnText.innerHTML = '<i class="fas fa-bolt"></i> Generate API Token';
                     
@@ -854,15 +944,26 @@
                     authProfile.style.display = 'none';
                     headerLoginBtn.style.display = 'block';
                     
-                    // Disable Generator
                     generateBtn.disabled = true;
                     genBtnText.innerHTML = '<i class="fas fa-lock"></i> Login to Generate';
                     
-                    // Show Login Prompt Modal
+                    // Clear Data
+                    localTokens = [];
+                    updateTokensTable();
+
+                    // Force login modal
                     loginModal.style.display = 'flex';
                 }
             });
         }
+
+        // Periodic Check Loop (Extra Safety for "Automatic Refresh" requirement)
+        setInterval(() => {
+            if (auth && currentUser && !auth.currentUser) {
+                // If we think we are logged in, but SDK says no -> Reload/Logout
+                window.location.reload(); 
+            }
+        }, 10000); // Check every 10 seconds
 
         function loginWithGoogle() {
             if(!auth) return;
@@ -875,10 +976,8 @@
                 });
         }
 
-        // Auth Event Listeners
         modalLoginBtn.addEventListener('click', loginWithGoogle);
         headerLoginBtn.addEventListener('click', () => {
-             // If clicked header login, show account chooser
              loginWithGoogle();
         });
 
@@ -886,18 +985,15 @@
              if(auth) {
                  auth.signOut().then(() => {
                      showNotification("Logged out successfully", "info");
-                     localTokens = [];
-                     updateTokensTable();
                  });
              }
         });
 
-        // Set default expiry
+        // Date Setup
         const defaultExpiry = new Date();
         defaultExpiry.setDate(defaultExpiry.getDate() + 30);
         tokenExpiryInput.valueAsDate = defaultExpiry;
         
-        // Handle No Limit Checkbox
         noLimitCheck.addEventListener('change', function() {
             if(this.checked) {
                 tokenExpiryInput.disabled = true;
@@ -914,7 +1010,7 @@
             updateTokensTable();
         }
         
-        // Generate API Token Button
+        // Generate Token
         generateBtn.addEventListener('click', function() {
             if (!currentUser && auth) {
                 loginModal.style.display = 'flex';
@@ -938,7 +1034,6 @@
                 return;
             }
             
-            // Animation
             generateBtn.classList.add('btn-loading');
             
             setTimeout(() => {
@@ -957,19 +1052,16 @@
 
                 saveToken(newToken);
 
-                // Show Result Modal instead of inline div
                 modalTokenDisplay.innerHTML = `<span style="color:var(--primary-color)">NURAPI-autopay-</span>${tokenBody}`;
                 resultModal.style.display = 'flex';
                 
                 showNotification('API token generated successfully!', 'success');
                 
-                // Reset Button
                 generateBtn.classList.remove('btn-loading');
 
-            }, 1500); 
+            }, 1000); 
         });
         
-        // Modal Actions
         closeResultModalBtn.addEventListener('click', () => {
             resultModal.style.display = 'none';
         });
@@ -1124,7 +1216,7 @@
         }
         
         function generateRandomString(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let result = '';
             const randomValues = new Uint8Array(length);
             crypto.getRandomValues(randomValues);
@@ -1135,7 +1227,11 @@
         }
         
         function showNotification(message, type) {
-            notification.textContent = message;
+            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : 
+                         type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' : 
+                         '<i class="fas fa-info-circle"></i>';
+            
+            notification.innerHTML = `${icon} ${message}`;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 3000);
